@@ -145,7 +145,7 @@ export function HotelDetailDrawer({
               const trk = tracking.find(x => x.prospect_id === sel.id);
               if (!trk) return null;
               const DS = [
-                {key:"new",label:"Verified",color:"#059669"},{key:"1st",label:"Email #1",color:"#2563eb"},
+                {key:"new",label:"Not started",color:"rgb(183 186 185)"},{key:"1st",label:"Email #1",color:"#2563eb"},
                 {key:"2nd",label:"Follow-up #1",color:"#0891b2"},{key:"3rd",label:"Follow-up #2",color:"#7c3aed"},
                 {key:"4th",label:"Follow-up #3",color:"#6d28d9"},{key:"replied",label:"Replied",color:"#0d9488"},
                 {key:"bounced",label:"Bounced",color:"#b45309"},{key:"demo",label:"Demo",color:"#c026d3"},
@@ -153,7 +153,7 @@ export function HotelDetailDrawer({
                 {key:"lost",label:"Lost",color:"#dc2626"}
               ];
               const ms = s => { if (s==="active") return "new"; if (s==="emailed") return "1st"; if (s==="followup") return "2nd"; if (s==="dead") return "lost"; return s; };
-              const stage = ms(trk.pipeline_stage || null);
+              const stage = ms(trk.pipeline_stage || 'new');
               const so = DS.find(s=>s.key===stage) || DS[0];
               const hasStageOption = DS.some(s => s.key === stage);
               const stageSelectValue = hasStageOption ? stage : "";
@@ -189,7 +189,6 @@ export function HotelDetailDrawer({
                         }}
                         style={{fontSize:13,fontWeight:700,color:so.color,background:"transparent",border:"1px solid var(--border2)",borderRadius:5,padding:"3px 8px",cursor:"pointer",fontFamily:"'Inter',sans-serif"}}
                       >
-                        <option value="" disabled>Unmatched stage (empty)</option>
                         {DS.map(s => <option key={s.key} value={s.key} style={{color:s.color}}>{s.label}</option>)}
                       </select>
                     </span>

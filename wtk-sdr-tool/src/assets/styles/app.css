@@ -30,7 +30,7 @@
 
   .main { padding: 24px 28px; }
 
-  .cmd-panel { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 10px 16px; margin-bottom: 16px; box-shadow: var(--shadow-sm); }
+  .cmd-panel { display: flex;align-items: center;justify-content: space-between; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 10px 16px; margin-bottom: 16px; box-shadow: var(--shadow-sm); }
   .cmd-inline { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
   .cmd-geo { display: flex; align-items: center; gap: 4px; }
   .cmd-input { background: var(--bg); border: 1px solid var(--border2); border-radius: 5px; padding: 5px 8px; font-family: 'Inter',sans-serif; font-size: 12px; color: var(--text); outline: none; height: 30px; }

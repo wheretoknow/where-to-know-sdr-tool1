@@ -5,13 +5,24 @@ import { sbFetch } from "../../../api/supabase.js";
 import { uid } from "../../../utils/uid.js";
 import { parseJSON } from "../../../utils/jsonUtils.js";
 import { fmtDateShort } from "../../../utils/dateUtils.js";
+import { AddHotelToolbarControl } from "./AddHotelToolbarControl.jsx";
 
 const COOLDOWN_SEC = 15;
 
 /**
  * Geo + chain scope + Run research. Owns running/cooldown/progress UI state.
  */
-export function ResearchCommandPanel({ prospects, setProspects, setTab, sdrName, saveSdrName }) {
+export function ResearchCommandPanel({
+  prospects,
+  setProspects,
+  setTracking,
+  setTab,
+  sdrName,
+  saveSdrName,
+  addHotelRef,
+  onToast,
+  onAddHotelOpenChange,
+}) {
   const [region, setRegion] = useState("Europe");
   const [country, setCountry] = useState("Austria");
   const [cityInput, setCityInput] = useState("Vienna");
@@ -331,7 +342,7 @@ export function ResearchCommandPanel({ prospects, setProspects, setTab, sdrName,
   return (
     <div className="cmd-panel">
       <div className="cmd-inline">
-        {!multiMode ? (
+      {!multiMode ? (
           <div className="cmd-geo">
             <select
               value={region}
@@ -520,7 +531,21 @@ export function ResearchCommandPanel({ prospects, setProspects, setTab, sdrName,
             "▶ Run"
           )}
         </button>
+        
       </div>
+      <AddHotelToolbarControl
+        ref={addHotelRef}
+        sdrName={sdrName}
+        setProspects={setProspects}
+        setTracking={setTracking}
+        onToast={onToast}
+        onOpenChange={onAddHotelOpenChange}
+        buttonStyle={{
+          background: "var(--accent)",
+          color: "white",
+          border: "1px solid var(--accent)",
+        }}
+      />
       {running && (
         <div className="progress-wrap" style={{ marginTop: 8 }}>
           <div className="progress-bar">

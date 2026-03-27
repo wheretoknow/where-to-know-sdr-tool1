@@ -17,7 +17,6 @@ import { RejectLostModal } from "./components/RejectLostModal.jsx";
 import { HotelDetailDrawer } from "./components/HotelDetailDrawer.jsx";
 import { Toast } from "./components/Toast.jsx";
 import { ResearchCommandPanel } from "./components/ResearchCommandPanel.jsx";
-import { AddHotelToolbarControl } from "./components/AddHotelToolbarControl.jsx";
 import { exportProspectsCsv, importProspectsFromFile } from "./utils/prospectCsv.js";
 import { useRejectLost } from "./hooks/useRejectLost.js";
 
@@ -385,7 +384,12 @@ export default function HomePage() {
   const filteredP = prospects.filter(p => {
     if (leadStatusFilter.length > 0 && !leadStatusFilter.includes(p.lead_status || "Active")) return false;
     if (filterSdr !== "all" && p.sdr !== filterSdr) return false;
-    if (filterCountry === "__blank__" ? !!(p.country||"").trim() : filterCountry && (p.country||"") !== filterCountry) return false;
+    if (
+      filterCountry === "__blank__"
+        ? !!(p.country || "").trim()
+        : filterCountry && normalizeCountryName(p.country) !== filterCountry
+    )
+      return false;
     if (filterCity === "__blank__" ? !!(p.city||"").trim() : filterCity && (p.city||"") !== filterCity) return false;
     if (filterGroup === "__blank__" ? !!(normalizeGroup(p.hotel_group||p.brand||"")) : filterGroup && normalizeGroup(p.hotel_group||p.brand||"") !== filterGroup) return false;
     if (filterBrand === "__blank__" ? !!(normalizeBrand(p.brand)) : filterBrand && normalizeBrand(p.brand) !== filterBrand) return false;
@@ -432,7 +436,7 @@ export default function HomePage() {
       const q = normalizeSearch(outreachSearch);
       if (!normalizeSearch(t.hotel).includes(q) && !normalizeSearch(t.gm).includes(q)) return false;
     }
-    if (outreachCountry && (p?.country||"") !== outreachCountry) return false;
+    if (outreachCountry && normalizeCountryName(p?.country) !== outreachCountry) return false;
     if (outreachCity && (p?.city||"") !== outreachCity) return false;
     if (outreachGroup && normalizeGroup(p?.hotel_group||p?.brand||"") !== outreachGroup) return false;
     if (outreachTier && p?.brand !== outreachTier) return false;
@@ -448,6 +452,15 @@ export default function HomePage() {
   const totalHotelPages = Math.ceil(sortedP.length / HOTELS_PER_PAGE);
   const pagedP = sortedP.slice((hotelsPage-1)*HOTELS_PER_PAGE, hotelsPage*HOTELS_PER_PAGE);
 
+  function normalizeCountryName(v) {
+    const s = (v ?? "").toString().trim();
+    if (!s) return s;
+    const lower = s.toLowerCase();
+    if (lower === "united kingdom") return "UK";
+    if (lower === "united states" || lower === "united states of america") return "USA";
+    return s;
+  }
+
   function matchTextFilter(value, filterValue) {
     if (!filterValue) return true;
     if (filterValue === "__blank__") return !(value || "").trim();
@@ -455,7 +468,7 @@ export default function HomePage() {
   }
 
   function matchFacetFilters(p, { skipCountry = false, skipCity = false, skipGroup = false, skipBrand = false } = {}) {
-    if (!skipCountry && !matchTextFilter(p.country, filterCountry)) return false;
+    if (!skipCountry && !matchTextFilter(normalizeCountryName(p.country), filterCountry)) return false;
     if (!skipCity && !matchTextFilter(p.city, filterCity)) return false;
     if (!skipGroup && !matchTextFilter(normalizeGroup(p.hotel_group || p.brand || ""), filterGroup)) return false;
     if (!skipBrand && !matchTextFilter(normalizeBrand(p.brand), filterBrand)) return false;
@@ -466,7 +479,7 @@ export default function HomePage() {
     ...new Set(
       prospects
         .filter((p) => matchFacetFilters(p, { skipCountry: true }))
-        .map((p) => p.country)
+        .map((p) => normalizeCountryName(p.country))
         .filter(Boolean)
     ),
   ].sort();
@@ -517,9 +530,13 @@ export default function HomePage() {
           <ResearchCommandPanel
             prospects={prospects}
             setProspects={setProspects}
+            setTracking={setTracking}
             setTab={setTab}
             sdrName={sdrName}
             saveSdrName={saveSdrName}
+            addHotelRef={addHotelRef}
+            onToast={showToast}
+            onAddHotelOpenChange={setAddHotelModalOpen}
           />
 
           <div className="toolbar">
@@ -529,14 +546,6 @@ export default function HomePage() {
             <span style={{width:1,height:24,background:"var(--border)",margin:"0 4px",flexShrink:0}}/>
             {["A","B","C"].map(g=><button key={g} className={`filter-pill ${filterGrade.includes(g)?"active":""}`} onClick={()=>{setFilterGrade(prev=>prev.includes(g)?prev.filter(x=>x!==g):[...prev,g]);setHotelsPage(1);}} style={{borderColor:{A:"#1d4ed8",B:"#475569",C:"#94a3b8"}[g],color:filterGrade.includes(g)?undefined:{A:"#1d4ed8",B:"#475569",C:"#94a3b8"}[g]}}>{g}</button>)}
             <span style={{width:1,height:24,background:"var(--border)",margin:"0 4px",flexShrink:0}}/>
-            <AddHotelToolbarControl
-              ref={addHotelRef}
-              sdrName={sdrName}
-              setProspects={setProspects}
-              setTracking={setTracking}
-              onToast={showToast}
-              onOpenChange={setAddHotelModalOpen}
-            />
             {filteredP.length > 0 && (
               <button type="button" className="export-btn" onClick={() => exportProspectsCsv(filteredP)}>
                 ↓ Export CSV

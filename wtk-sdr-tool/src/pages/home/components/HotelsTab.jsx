@@ -542,7 +542,7 @@ export function HotelsTab({
                         <div className="gm-name" style={{ fontSize: 12 }} title={p.gm_name || ""}>
                           {p.gm_name || <span className="cell-muted">—</span>}
                         </div>
-                        {p.gm_name && p.gm_title && p.gm_title !== "General Manager" ? (
+                        {p.gm_name && p.gm_title ? (
                           <div className="gm-title-sm">{p.gm_title}</div>
                         ) : null}
                       </td>

@@ -8,7 +8,7 @@ function formHasData(form) {
 }
 
 export const AddHotelToolbarControl = forwardRef(function AddHotelToolbarControl(
-  { sdrName, setProspects, setTracking, onToast, onOpenChange },
+  { sdrName, setProspects, setTracking, onToast, onOpenChange, buttonStyle },
   ref
 ) {
   const [open, setOpen] = useState(false);
@@ -104,7 +104,7 @@ export const AddHotelToolbarControl = forwardRef(function AddHotelToolbarControl
       <button
         type="button"
         className="export-btn"
-        style={{ fontWeight: 600 }}
+        style={{ fontWeight: 600, ...(buttonStyle || {}),height: "34px",width: "102px" }}
         onClick={() => {
           setForm({});
           setOpen(true);
