@@ -43,7 +43,7 @@ export function HotelDetailDrawer({
               <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10}}>
                 <span className="d-sec-title" style={{margin:0}}>Property</span>
               </div>
-              <div className="d-row"><span className="d-key">City</span><span className="d-val"><EditableField value={sel.city} placeholder="Add City" onSave={v => updateProspectField(sel.id, 'City', v)} /></span></div>
+              <div className="d-row"><span className="d-key">City</span><span className="d-val"><EditableField value={sel.city} placeholder="Add City" onSave={v => updateProspectField(sel.id, 'city', v)} /></span></div>
               <div className="d-row"><span className="d-key">Country</span><span className="d-val"><EditableField value={sel.country} placeholder="Add Country" onSave={v => updateProspectField(sel.id, 'country', v)} /></span></div>
 
               <div className="d-row"><span className="d-key">Address</span><span className="d-val"><EditableField value={sel.address} placeholder="Add address" onSave={v => updateProspectField(sel.id, 'address', v)} /></span></div>
