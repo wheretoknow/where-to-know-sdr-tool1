@@ -43,6 +43,9 @@ export function HotelDetailDrawer({
               <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10}}>
                 <span className="d-sec-title" style={{margin:0}}>Property</span>
               </div>
+              <div className="d-row"><span className="d-key">City</span><span className="d-val"><EditableField value={sel.city} placeholder="Add City" onSave={v => updateProspectField(sel.id, 'City', v)} /></span></div>
+              <div className="d-row"><span className="d-key">Country</span><span className="d-val"><EditableField value={sel.country} placeholder="Add Country" onSave={v => updateProspectField(sel.id, 'country', v)} /></span></div>
+
               <div className="d-row"><span className="d-key">Address</span><span className="d-val"><EditableField value={sel.address} placeholder="Add address" onSave={v => updateProspectField(sel.id, 'address', v)} /></span></div>
               <div className="d-row"><span className="d-key">Rooms</span><span className="d-val"><EditableField value={sel.rooms ? String(sel.rooms) : ""} placeholder="Add rooms" type="number" onSave={v => updateProspectField(sel.id, 'rooms', v)} /></span></div>
               <div className="d-row"><span className="d-key">Restaurants</span><span className="d-val"><EditableField value={sel.restaurants ? String(sel.restaurants) : ""} placeholder="Add count" type="number" onSave={v => updateProspectField(sel.id, 'restaurants', v)} /></span></div>
@@ -150,8 +153,10 @@ export function HotelDetailDrawer({
                 {key:"lost",label:"Lost",color:"#dc2626"}
               ];
               const ms = s => { if (s==="active") return "new"; if (s==="emailed") return "1st"; if (s==="followup") return "2nd"; if (s==="dead") return "lost"; return s; };
-              const stage = ms(trk.pipeline_stage || "new");
+              const stage = ms(trk.pipeline_stage || null);
               const so = DS.find(s=>s.key===stage) || DS[0];
+              const hasStageOption = DS.some(s => s.key === stage);
+              const stageSelectValue = hasStageOption ? stage : "";
               return (
                 <div className="d-sec">
                   <div className="d-sec-title">Pipeline Status</div>
@@ -159,9 +164,10 @@ export function HotelDetailDrawer({
                     <span className="d-key">Stage</span>
                     <span className="d-val">
                       <select
-                        value={stage}
+                        value={stageSelectValue}
                         onChange={async e => {
                           const newStage = e.target.value;
+                          if (!newStage) return;
                           if (newStage === "lost") { openRejectModal(trk.id, "lost"); return; }
                           const now = new Date().toISOString();
                           const stageToTouch = { "1st": 1, "2nd": 2, "3rd": 3, "4th": 4 };
@@ -183,6 +189,7 @@ export function HotelDetailDrawer({
                         }}
                         style={{fontSize:13,fontWeight:700,color:so.color,background:"transparent",border:"1px solid var(--border2)",borderRadius:5,padding:"3px 8px",cursor:"pointer",fontFamily:"'Inter',sans-serif"}}
                       >
+                        <option value="" disabled>Unmatched stage (empty)</option>
                         {DS.map(s => <option key={s.key} value={s.key} style={{color:s.color}}>{s.label}</option>)}
                       </select>
                     </span>

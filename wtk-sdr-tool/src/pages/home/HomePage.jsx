@@ -447,8 +447,30 @@ export default function HomePage() {
   });
   const totalHotelPages = Math.ceil(sortedP.length / HOTELS_PER_PAGE);
   const pagedP = sortedP.slice((hotelsPage-1)*HOTELS_PER_PAGE, hotelsPage*HOTELS_PER_PAGE);
-  const allCountries = [...new Set(prospects.map(p=>p.country).filter(Boolean))].sort();
-  const allCities = filterCountry ? [...new Set(prospects.filter(p=>p.country===filterCountry).map(p=>p.city).filter(Boolean))].sort() : [...new Set(prospects.map(p=>p.city).filter(Boolean))].sort();
+  const allCountries = [
+    ...new Set(
+      prospects
+        .filter((p) => {
+          if (!filterCity) return true;
+          if (filterCity === "__blank__") return !(p.city || "").trim();
+          return (p.city || "") === filterCity;
+        })
+        .map((p) => p.country)
+        .filter(Boolean)
+    ),
+  ].sort();
+  const allCities = [
+    ...new Set(
+      prospects
+        .filter((p) => {
+          if (!filterCountry) return true;
+          if (filterCountry === "__blank__") return !(p.country || "").trim();
+          return (p.country || "") === filterCountry;
+        })
+        .map((p) => p.city)
+        .filter(Boolean)
+    ),
+  ].sort();
   const allGroups = [...new Set(prospects.map(p=>normalizeGroup(p.hotel_group||p.brand)).filter(Boolean))].sort();
   const allBrands = [...new Set(prospects.map(p=>normalizeBrand(p.brand)).filter(Boolean))].sort();
   const allProviders = [...new Set(prospects.map(p=>getProvider(p)||"Unknown"))].sort();
