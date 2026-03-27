@@ -447,14 +447,25 @@ export default function HomePage() {
   });
   const totalHotelPages = Math.ceil(sortedP.length / HOTELS_PER_PAGE);
   const pagedP = sortedP.slice((hotelsPage-1)*HOTELS_PER_PAGE, hotelsPage*HOTELS_PER_PAGE);
+
+  function matchTextFilter(value, filterValue) {
+    if (!filterValue) return true;
+    if (filterValue === "__blank__") return !(value || "").trim();
+    return (value || "") === filterValue;
+  }
+
+  function matchFacetFilters(p, { skipCountry = false, skipCity = false, skipGroup = false, skipBrand = false } = {}) {
+    if (!skipCountry && !matchTextFilter(p.country, filterCountry)) return false;
+    if (!skipCity && !matchTextFilter(p.city, filterCity)) return false;
+    if (!skipGroup && !matchTextFilter(normalizeGroup(p.hotel_group || p.brand || ""), filterGroup)) return false;
+    if (!skipBrand && !matchTextFilter(normalizeBrand(p.brand), filterBrand)) return false;
+    return true;
+  }
+
   const allCountries = [
     ...new Set(
       prospects
-        .filter((p) => {
-          if (!filterCity) return true;
-          if (filterCity === "__blank__") return !(p.city || "").trim();
-          return (p.city || "") === filterCity;
-        })
+        .filter((p) => matchFacetFilters(p, { skipCountry: true }))
         .map((p) => p.country)
         .filter(Boolean)
     ),
@@ -462,17 +473,27 @@ export default function HomePage() {
   const allCities = [
     ...new Set(
       prospects
-        .filter((p) => {
-          if (!filterCountry) return true;
-          if (filterCountry === "__blank__") return !(p.country || "").trim();
-          return (p.country || "") === filterCountry;
-        })
+        .filter((p) => matchFacetFilters(p, { skipCity: true }))
         .map((p) => p.city)
         .filter(Boolean)
     ),
   ].sort();
-  const allGroups = [...new Set(prospects.map(p=>normalizeGroup(p.hotel_group||p.brand)).filter(Boolean))].sort();
-  const allBrands = [...new Set(prospects.map(p=>normalizeBrand(p.brand)).filter(Boolean))].sort();
+  const allGroups = [
+    ...new Set(
+      prospects
+        .filter((p) => matchFacetFilters(p, { skipGroup: true }))
+        .map((p) => normalizeGroup(p.hotel_group || p.brand))
+        .filter(Boolean)
+    ),
+  ].sort();
+  const allBrands = [
+    ...new Set(
+      prospects
+        .filter((p) => matchFacetFilters(p, { skipBrand: true }))
+        .map((p) => normalizeBrand(p.brand))
+        .filter(Boolean)
+    ),
+  ].sort();
   const allProviders = [...new Set(prospects.map(p=>getProvider(p)||"Unknown"))].sort();
 
   return (
