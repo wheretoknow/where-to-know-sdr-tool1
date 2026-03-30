@@ -35,6 +35,15 @@
   .cmd-geo { display: flex; align-items: center; gap: 4px; }
   .cmd-input { background: var(--bg); border: 1px solid var(--border2); border-radius: 5px; padding: 5px 8px; font-family: 'Inter',sans-serif; font-size: 12px; color: var(--text); outline: none; height: 30px; }
   .cmd-input:focus { border-color: var(--accent); }
+  /* 当 cmd-input 里“有值”时，边框也保持蓝色（避免只在 focus 时变蓝） */
+  /* 1) inputs：依赖 placeholder（如搜索框、输入框通常都有 placeholder） */
+  /* .cmd-input:not(:placeholder-shown) { border-color: var(--accent); } */
+  /* 2) selects：尽量兼容，用 :has 判断选中项不是空值 option */
+  @supports selector(:has(*)) {
+    select.cmd-input:not(:has(option[value=""]:checked)) { border-color: var(--accent); }
+    /* 如果选中的是第一个 “All/空值” (option value="")，即使获得焦点也不保持蓝色 */
+    select.cmd-input:has(option[value=""]:checked):focus { border-color: var(--border2); }
+  }
   .cmd-link { background: none; border: none; font-size: 11px; color: var(--accent); cursor: pointer; padding: 0 2px; white-space: nowrap; }
   .cmd-divider { width: 1px; height: 20px; background: var(--border2); margin: 0 2px; }
   .tier-btn { padding: 4px 10px; border: 1px solid var(--border2); border-radius: 5px; background: var(--surface); font-family: 'Inter',sans-serif; font-size: 11px; font-weight: 500; color: var(--text2); cursor: pointer; transition: all 0.15s; height: 30px; }

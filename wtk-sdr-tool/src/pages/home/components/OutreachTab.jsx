@@ -3,16 +3,16 @@ import { useState } from "react";
 export function OutreachTab({ filteredT, stageFilter, setStageFilter, setSelected, touchToggle, updatePipeline, openRejectModal, reopenSequence, outreachView, setOutreachView, setDeleteConfirm, editingNote, setEditingNote, noteText, setNoteText, saveNote, prospects,
   outreachSearch, setOutreachSearch, outreachCountry, setOutreachCountry, outreachCity, setOutreachCity, outreachGroup, setOutreachGroup, outreachTier, setOutreachTier, outreachProvider, setOutreachProvider,
   allCountries, allCities, allGroups, allProviders, updateIntention,
-  pipeStageFilter, setPipeStageFilter, pipeHasGM, setPipeHasGM, pipeHasEmail, setPipeHasEmail }) {
+  pipeStageFilter, setPipeStageFilter, pipeHasGM, setPipeHasGM, pipeHasEmail, setPipeHasEmail, pipeHasLinkedIn, setPipeHasLinkedIn }) {
 
   const [dragOver, setDragOver] = useState(null);
   const [menuOpen, setMenuOpen] = useState(null);
-  const hasActiveFilters = outreachSearch || outreachCountry || outreachCity || outreachGroup || outreachTier || outreachProvider || pipeStageFilter || pipeHasGM || pipeHasEmail;
-  function clearFilters() { setOutreachSearch(""); setOutreachCountry(""); setOutreachCity(""); setOutreachGroup(""); setOutreachTier(""); setOutreachProvider(""); setPipeStageFilter(""); setPipeHasGM(false); setPipeHasEmail(false); }
+  const hasActiveFilters = outreachSearch || outreachCountry || outreachCity || outreachGroup || outreachTier || outreachProvider || pipeStageFilter || pipeHasGM || pipeHasEmail || pipeHasLinkedIn;
+  function clearFilters() { setOutreachSearch(""); setOutreachCountry(""); setOutreachCity(""); setOutreachGroup(""); setOutreachTier(""); setOutreachProvider(""); setPipeStageFilter(""); setPipeHasGM(false); setPipeHasEmail(false); setPipeHasLinkedIn(false); }
   if (filteredT.length === 0 && !hasActiveFilters) return <div className="empty"><div className="empty-icon">{"\u{1F4EC}"}</div><div className="empty-title">No outreach tracked</div><div className="empty-sub">Run research to start the tracker.</div></div>;
 
   const STAGES = [
-    { key: "new", label: "Verified", color: "#059669", bg: "#ecfdf5" },
+    { key: "new", label: "Not started", color: "#059669", bg: "#ecfdf5" },
     { key: "1st", label: "Email #1", color: "#2563eb", bg: "#eff6ff" },
     { key: "2nd", label: "Follow-up #1", color: "#0891b2", bg: "#ecfeff" },
     { key: "3rd", label: "Follow-up #2", color: "#7c3aed", bg: "#f5f3ff" },
@@ -39,11 +39,15 @@ export function OutreachTab({ filteredT, stageFilter, setStageFilter, setSelecte
   // Summary counts should exclude stage filter (so you see total breakdown while filtering)
   const stageMap = {};
   STAGES.forEach(s => { stageMap[s.key] = []; });
-  filteredT.forEach(t => { const s = effectiveStage(t); (stageMap[s] || stageMap["new"]).push(t); });
-
-  // Apply stage filter for display only
-  const displayT = pipeStageFilter ? filteredT.filter(t => effectiveStage(t) === pipeStageFilter) : filteredT;
-
+  const stageFilteredT = pipeStageFilter
+    ? filteredT.filter(t => effectiveStage(t) === pipeStageFilter)
+    : filteredT;
+  stageFilteredT.forEach(t => {
+    const s = effectiveStage(t);
+    (stageMap[s] || stageMap["new"]).push(t);
+  });
+  // Apply stage filter for display (list view)
+  const displayT = stageFilteredT;
   const IL = { 1: "Cold", 2: "Low", 3: "Medium", 4: "Warm", 5: "Hot" };
   const IC = { 1: "#9ca3af", 2: "#6b7280", 3: "#eab308", 4: "#f59e0b", 5: "#ef4444" };
   function intLabel(v) { return (!v || v < 1) ? null : { text: IL[v], cls: v >= 4 ? "int-hot" : v >= 3 ? "int-warm" : "int-cold" }; }
@@ -120,7 +124,7 @@ export function OutreachTab({ filteredT, stageFilter, setStageFilter, setSelecte
     );
   }
 
-  const tActive = filteredT.filter(t => !["won","lost","dead"].includes(effectiveStage(t))).length;
+  const tActive = stageFilteredT.filter(t => !["won","lost","dead"].includes(effectiveStage(t))).length;
   const tDemo = (stageMap.demo||[]).length, tTrial = (stageMap.trial||[]).length;
   const tWon = (stageMap.won||[]).length, tLost = (stageMap.lost||[]).length;
   const conv = (tWon+tLost) > 0 ? Math.round(tWon/(tWon+tLost)*100) : 0;
@@ -140,6 +144,7 @@ export function OutreachTab({ filteredT, stageFilter, setStageFilter, setSelecte
       </select>
       <button className="act-btn" style={{fontSize:11,flexShrink:0,background:pipeHasGM?"var(--accent)":"transparent",color:pipeHasGM?"white":"var(--text2)",border:pipeHasGM?"1px solid var(--accent)":"1px solid var(--border)",borderRadius:4,padding:"4px 8px"}} onClick={()=>setPipeHasGM(v=>!v)}>Has GM</button>
       <button className="act-btn" style={{fontSize:11,flexShrink:0,background:pipeHasEmail?"var(--accent)":"transparent",color:pipeHasEmail?"white":"var(--text2)",border:pipeHasEmail?"1px solid var(--accent)":"1px solid var(--border)",borderRadius:4,padding:"4px 8px"}} onClick={()=>setPipeHasEmail(v=>!v)}>Has Email</button>
+      <button className="act-btn" style={{fontSize:11,flexShrink:0,background:pipeHasLinkedIn?"var(--accent)":"transparent",color:pipeHasLinkedIn?"white":"var(--text2)",border:pipeHasLinkedIn?"1px solid var(--accent)":"1px solid var(--border)",borderRadius:4,padding:"4px 8px"}} onClick={()=>setPipeHasLinkedIn(v=>!v)}>Has LinkedIn</button>
       {hasActiveFilters && <button className="act-btn" style={{fontSize:11,flexShrink:0}} onClick={clearFilters}>{"\u2715"} Clear</button>}
       <div style={{marginLeft:"auto"}} className="view-toggle">
         <button className={"view-btn " + (outreachView==="card"?"active":"")} onClick={()=>setOutreachView("card")}>{"\u25A4"} Kanban</button>

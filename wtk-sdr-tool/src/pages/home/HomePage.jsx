@@ -60,6 +60,7 @@ export default function HomePage() {
   const [noteText, setNoteText] = useState("");
   const [filterProvider, setFilterProvider] = useState("");
   const [filterHasEmail, setFilterHasEmail] = useState(false);
+  const [filterHasLinkedIn, setFilterHasLinkedIn] = useState(false);
   const [filterHasGM, setFilterHasGM] = useState(false);
   const [filterVerified, setFilterVerified] = useState(""); // "" | "yes" | "no"
   // Outreach tracker filters
@@ -72,6 +73,7 @@ export default function HomePage() {
   const [pipeStageFilter, setPipeStageFilter] = useState("");
   const [pipeHasGM, setPipeHasGM] = useState(false);
   const [pipeHasEmail, setPipeHasEmail] = useState(false);
+  const [pipeHasLinkedIn, setPipeHasLinkedIn] = useState(false);
   const [ctOwnerFilter, setCtOwnerFilter] = useState("");
   const [ctDueFilter, setCtDueFilter] = useState("");
   const [ctPriFilter, setCtPriFilter] = useState("");
@@ -206,7 +208,7 @@ export default function HomePage() {
     try { await sbFetch(`/prospects?id=eq.${pid}`, { method: "PATCH", prefer: "return=minimal", body: JSON.stringify(patch) }); } catch(e) { console.error(e); }
     // Sync tracking primary
     if (primary) {
-      const tPatch = { gm: primary.name || null, email: primary.email || null };
+      const tPatch = { gm: primary.name || null, email: primary.email || null, linkedin: primary.linkedin || null };
       setTracking(prev => prev.map(x => x.prospect_id === pid ? { ...x, ...tPatch } : x));
       try { await sbFetch(`/tracking?prospect_id=eq.${pid}`, { method: "PATCH", prefer: "return=minimal", body: JSON.stringify(tPatch) }); } catch(e) { console.error(e); }
     }
@@ -257,8 +259,24 @@ export default function HomePage() {
         loadAll("/prospects?order=created_at.desc"),
         loadAll("/tracking?order=created_at.desc")
       ]);
-      const prospects = p || [], trackingData = t || [];
-      setProspects(prospects); setTracking(trackingData);
+      const prospects = p || [],
+        trackingData = t || [];
+
+      // Enrich tracking rows with prospect email/linkedin so Pipeline filters
+      // can work even when tracking row doesn't contain those fields yet.
+      const prospectById = new Map(prospects.map((pp) => [pp.id, pp]));
+      const enrichedTrackingData = trackingData.map((row) => {
+        const prospect = prospectById.get(row.prospect_id);
+        if (!prospect) return row;
+        return {
+          ...row,
+          email: prospect.email || null,
+          linkedin: prospect.linkedin || null,
+        };
+      });
+
+      setProspects(prospects);
+      setTracking(enrichedTrackingData);
 
       // ── Auto-verify migration ──────────────────────────────────────────────
       // Prospects that already have real outreach (stage beyond "new") are
@@ -266,7 +284,7 @@ export default function HomePage() {
       // so they remain visible in Pipeline. Runs once on load, skips already-verified.
       const CONTACTED_STAGES = new Set(["1st","2nd","3rd","4th","replied","bounced","demo","trial","won","lost","emailed","followup"]);
       const contactedPids = new Set(
-        trackingData
+        enrichedTrackingData
           .filter(t => CONTACTED_STAGES.has(t.pipeline_stage))
           .map(t => t.prospect_id)
       );
@@ -338,7 +356,19 @@ export default function HomePage() {
     // If no tracking row exists yet, create one so the hotel enters the Pipeline "Verified" column
     const hasTracking = tracking.some(t => t.prospect_id === pid);
     if (!hasTracking) {
-      const newRow = { id: uid(), prospect_id: pid, hotel: p.hotel_name, gm: p.gm_name || null, sdr: sdrName || "Unknown", pipeline_stage: "new", done: [], intention: 0, created_at: new Date().toISOString() };
+      const newRow = {
+        id: uid(),
+        prospect_id: pid,
+        hotel: p.hotel_name,
+        gm: p.gm_name || null,
+        email: p.email || null,
+        linkedin: p.linkedin || null,
+        sdr: sdrName || "Unknown",
+        pipeline_stage: "new",
+        done: [],
+        intention: 0,
+        created_at: new Date().toISOString(),
+      };
       // Optimistic update
       setTracking(prev => [...prev, newRow]);
       try {
@@ -399,6 +429,7 @@ export default function HomePage() {
     }
     if (filterGrade.length > 0 && !filterGrade.includes(calcLeadScore(p).grade)) return false;
     if (filterHasEmail && !p.email) return false;
+    if (filterHasLinkedIn && !p.linkedin) return false;
     if (filterHasGM && !p.gm_name) return false;
     if (filterVerified === "yes" && !p.verified) return false;
     if (filterVerified === "no" && p.verified) return false;
@@ -446,6 +477,7 @@ export default function HomePage() {
     }
     if (pipeHasGM && !t.gm) return false;
     if (pipeHasEmail && !t.email) return false;
+    if (pipeHasLinkedIn && !t.linkedin) return false;
     if (filterGrade.length > 0 && p && !filterGrade.includes(calcLeadScore(p).grade)) return false;
     return true;
   });
@@ -606,6 +638,8 @@ export default function HomePage() {
               setFilterProvider={setFilterProvider}
               filterHasEmail={filterHasEmail}
               setFilterHasEmail={setFilterHasEmail}
+              filterHasLinkedIn={filterHasLinkedIn}
+              setFilterHasLinkedIn={setFilterHasLinkedIn}
               filterHasGM={filterHasGM}
               setFilterHasGM={setFilterHasGM}
               filterVerified={filterVerified}
@@ -670,6 +704,8 @@ export default function HomePage() {
               setPipeHasGM={setPipeHasGM}
               pipeHasEmail={pipeHasEmail}
               setPipeHasEmail={setPipeHasEmail}
+              pipeHasLinkedIn={pipeHasLinkedIn}
+              setPipeHasLinkedIn={setPipeHasLinkedIn}
             />
           )}
 

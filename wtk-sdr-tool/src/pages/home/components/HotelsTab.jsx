@@ -60,6 +60,8 @@ export function HotelsTab({
   setFilterProvider,
   filterHasEmail,
   setFilterHasEmail,
+  filterHasLinkedIn,
+  setFilterHasLinkedIn,
   filterHasGM,
   setFilterHasGM,
   filterVerified,
@@ -88,6 +90,7 @@ export function HotelsTab({
     filterSearch ||
     filterProvider ||
     filterHasEmail ||
+    filterHasLinkedIn ||
     filterHasGM ||
     filterVerified;
 
@@ -98,6 +101,7 @@ export function HotelsTab({
     setFilterBrand("");
     setFilterSearch("");
     setFilterProvider("");
+    setFilterHasLinkedIn(false);
     setHotelsPage(1);
   }
 
@@ -244,6 +248,24 @@ export function HotelsTab({
         >
           Has Email
         </button>
+        <button
+          className="act-btn"
+          style={{
+            fontSize: 11,
+            flexShrink: 0,
+            background: filterHasLinkedIn ? "var(--accent)" : "transparent",
+            color: filterHasLinkedIn ? "white" : "var(--text2)",
+            border: filterHasLinkedIn ? "1px solid var(--accent)" : "1px solid var(--border)",
+            borderRadius: 4,
+            padding: "4px 8px",
+          }}
+          onClick={() => {
+            setFilterHasLinkedIn((v) => !v);
+            setHotelsPage(1);
+          }}
+        >
+          Has LinkedIn
+        </button>
         <select
           className="cmd-input"
           style={{ minWidth: 80, flexShrink: 0, fontSize: 11 }}
@@ -269,6 +291,7 @@ export function HotelsTab({
               setFilterSearch("");
               setFilterProvider("");
               setFilterHasEmail(false);
+              setFilterHasLinkedIn(false);
               setFilterHasGM(false);
               setFilterVerified("");
               setHotelsPage(1);

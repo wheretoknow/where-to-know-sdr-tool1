@@ -73,6 +73,8 @@ export const AddHotelToolbarControl = forwardRef(function AddHotelToolbarControl
           prospect_id: row.id,
           hotel: row.hotel_name,
           gm: row.gm_name || null,
+          email: row.email || null,
+          linkedin: row.linkedin || null,
           sdr: sdrName || "Unknown",
           pipeline_stage: "new",
           done: [],
