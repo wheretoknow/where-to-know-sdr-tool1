@@ -620,6 +620,7 @@ export default function HomePage() {
               toggleSort={toggleSort}
               updateProspect={updateProspect}
               updatePipeline={updatePipeline}
+              openRejectModal={openRejectModal}
               verifyAndAddToPipeline={verifyAndAddToPipeline}
               deleteProspect={deleteProspect}
               setDeleteConfirm={setDeleteConfirm}

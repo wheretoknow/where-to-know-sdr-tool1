@@ -13,5 +13,5 @@ export const REJECTION_REASONS = [
   "Corporate decision",
   "Other",
 ];
-export const STAGE_LABELS = {new:"Verified","1st":"Email #1","2nd":"Follow-up #1","3rd":"Follow-up #2","4th":"Follow-up #3",replied:"Replied",bounced:"Bounced",demo:"Demo",trial:"Trial",won:"Won",lost:"Lost"};
+export const STAGE_LABELS = {new:"Not started","1st":"Email #1","2nd":"Follow-up #1","3rd":"Follow-up #2","4th":"Follow-up #3",replied:"Replied",bounced:"Bounced",demo:"Demo",trial:"Trial",won:"Won",lost:"Lost"};
 export function stageLabel(s) { return STAGE_LABELS[s] || s?.charAt(0).toUpperCase() + s?.slice(1) || "New"; }

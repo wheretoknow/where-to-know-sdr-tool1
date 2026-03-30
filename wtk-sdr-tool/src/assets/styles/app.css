@@ -331,5 +331,5 @@
   .focus-done-btn.checked { border-color: var(--green); color: var(--green); background: var(--green-bg); }
 
   /* Verified badge */
-  .verified-badge { display: inline-flex; align-items: center; justify-content: center; width: 15px; height: 15px; border-radius: 50%; background: var(--green); color: white; font-size: 9px; font-weight: 700; margin-left: 4px; flex-shrink: 0; vertical-align: middle; }
+  .verified-badge { display: inline-flex; align-items: center; justify-content: center; width: 15px; height: 15px; border-radius: 50%; background: var(--green); color: white; font-size: 9px; font-weight: 700; margin-right: 4px; flex-shrink: 0; vertical-align: middle; }
   .verified-badge.unverified { background: transparent; border: 1.5px dashed var(--border2); color: var(--border2); font-size: 8px; }

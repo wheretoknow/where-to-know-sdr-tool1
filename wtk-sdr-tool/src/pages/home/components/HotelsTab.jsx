@@ -9,6 +9,30 @@ import {
 
 const HOTELS_PER_PAGE = 20;
 
+/** 与 HotelDetailDrawer「Pipeline Status / Stage」一致 */
+const PIPELINE_STAGE_OPTIONS = [
+  { key: "new", label: "Not started", color: "rgb(183 186 185)" },
+  { key: "1st", label: "Email #1", color: "#2563eb" },
+  { key: "2nd", label: "Follow-up #1", color: "#0891b2" },
+  { key: "3rd", label: "Follow-up #2", color: "#7c3aed" },
+  { key: "4th", label: "Follow-up #3", color: "#6d28d9" },
+  { key: "replied", label: "Replied", color: "#0d9488" },
+  { key: "bounced", label: "Bounced", color: "#b45309" },
+  { key: "demo", label: "Demo", color: "#c026d3" },
+  { key: "trial", label: "Trial", color: "#ea580c" },
+  { key: "won", label: "Won", color: "#059669" },
+  { key: "lost", label: "Lost", color: "#dc2626" },
+];
+
+function mapPipelineStage(raw) {
+  const s = raw || "new";
+  if (s === "active") return "new";
+  if (s === "emailed") return "1st";
+  if (s === "followup") return "2nd";
+  if (s === "dead") return "lost";
+  return s;
+}
+
 export function HotelsTab({
   loading,
   filteredP,
@@ -50,6 +74,7 @@ export function HotelsTab({
   toggleSort,
   updateProspect,
   updatePipeline,
+  openRejectModal,
   verifyAndAddToPipeline,
   deleteProspect,
   setDeleteConfirm,
@@ -458,7 +483,7 @@ export function HotelsTab({
                     </span>
                   </th>
                   <th style={{ width: "7%" }}>Provider</th>
-                  <th style={{ width: "6%" }}>Lead</th>
+                  <th style={{ width: "8%" }}>Stage</th>
                   <th style={{ width: "3%" }}></th>
                 </tr>
               </thead>
@@ -489,8 +514,7 @@ export function HotelsTab({
                       </td>
                       <td>
                         <div className="hotel-name" style={{ display: "flex", alignItems: "center" }}>
-                          {p.hotel_name}
-                          {p.verified ? (
+                        {p.verified ? (
                             <span className="verified-badge" title="Verified — appears in Pipeline">
                               ✓
                             </span>
@@ -506,6 +530,8 @@ export function HotelsTab({
                               ?
                             </span>
                           )}
+                          {p.hotel_name}
+                         
                         </div>
                       </td>
                       <td>
@@ -557,7 +583,7 @@ export function HotelsTab({
                               href={`mailto:${em}`}
                               onClick={(e) => e.stopPropagation()}
                               style={{
-                                maxWidth: 150,
+                                maxWidth: 100,
                                 display: "inline-block",
                                 overflow: "hidden",
                                 textOverflow: "ellipsis",
@@ -589,25 +615,77 @@ export function HotelsTab({
                         </span>
                       </td>
                       <td style={{ overflow: "visible" }} onClick={(e) => e.stopPropagation()}>
-                        <select
-                          style={{
-                            fontSize: 10,
-                            border: "1px solid var(--border2)",
-                            borderRadius: 3,
-                            padding: "2px 4px",
-                            background: "transparent",
-                            cursor: "pointer",
-                            color: { Active: "var(--green)", Dormant: "#d97706", Closed: "var(--text3)" }[
-                              p.lead_status || "Active"
-                            ],
-                          }}
-                          value={p.lead_status || "Active"}
-                          onChange={(e) => updateProspect(p.id, { lead_status: e.target.value })}
-                        >
-                          <option value="Active">Active</option>
-                          <option value="Dormant">Dormant</option>
-                          <option value="Closed">Closed</option>
-                        </select>
+                        {(() => {
+                          const trk = tracking.find((t) => t.prospect_id === p.id);
+                          if (!trk) {
+                            return (
+                              <span
+                                className="cell-muted"
+                                style={{ fontSize: 10 }}
+                                title="No tracking row — verify hotel to enter Pipeline"
+                              >
+                                —
+                              </span>
+                            );
+                          }
+                          const stageKey = mapPipelineStage(trk.pipeline_stage);
+                          const so = PIPELINE_STAGE_OPTIONS.find((s) => s.key === stageKey) || PIPELINE_STAGE_OPTIONS[0];
+                          const hasStageOption = PIPELINE_STAGE_OPTIONS.some((s) => s.key === stageKey);
+                          const stageSelectValue = hasStageOption ? stageKey : "";
+                          return (
+                            <select
+                              value={stageSelectValue}
+                              onChange={async (e) => {
+                                const newStage = e.target.value;
+                                if (!newStage) return;
+                                if (newStage === "lost") {
+                                  openRejectModal(trk.id, "lost");
+                                  return;
+                                }
+                                const now = new Date().toISOString();
+                                const stageToTouch = { "1st": 1, "2nd": 2, "3rd": 3, "4th": 4 };
+                                const touchN = stageToTouch[newStage];
+                                const updates = { pipeline_stage: newStage };
+                                if (newStage !== "lost" && trk.rejection_reason) updates.rejection_reason = null;
+                                if (newStage === "new") {
+                                  updates.d1 = null;
+                                  updates.d2 = null;
+                                  updates.d3 = null;
+                                  updates.d4 = null;
+                                  updates.done = [];
+                                }
+                                if (touchN) {
+                                  const done = [...(trk.done || [])];
+                                  for (let i = 1; i <= touchN; i++) {
+                                    if (!trk["d" + i]) updates["d" + i] = now;
+                                    if (!done.includes(i)) done.push(i);
+                                  }
+                                  done.sort((a, b) => a - b);
+                                  updates.done = done;
+                                }
+                                await updatePipeline(trk.id, updates);
+                              }}
+                              style={{
+                                fontSize: 10,
+                                fontWeight: 700,
+                                color: so.color,
+                                background: "transparent",
+                                border: "1px solid var(--border2)",
+                                borderRadius: 4,
+                                padding: "2px 4px",
+                                cursor: "pointer",
+                                maxWidth: 132,
+                              }}
+                            >
+                             
+                              {PIPELINE_STAGE_OPTIONS.map((s) => (
+                                <option key={s.key} value={s.key} style={{ color: s.color }}>
+                                  {s.label}
+                                </option>
+                              ))}
+                            </select>
+                          );
+                        })()}
                       </td>
                       <td style={{ overflow: "visible", textOverflow: "clip" }} onClick={(e) => e.stopPropagation()}>
                         <button className="del-btn" onClick={() => setDeleteConfirm(p.id)} title="Delete">
