@@ -435,7 +435,20 @@ export default function HomePage() {
     if (filterVerified === "no" && p.verified) return false;
     if (filterSearch) {
       const q = normalizeSearch(filterSearch);
-      if (!normalizeSearch(p.hotel_name).includes(q) && !normalizeSearch(p.gm_name).includes(q) && !normalizeSearch(p.city).includes(q)) return false;
+      const hotelName = normalizeSearch(p.hotel_name);
+      const gmName = normalizeSearch(p.gm_name);
+      const gmTitle = normalizeSearch(p.gm_title);
+      const city = normalizeSearch(p.city);
+      const email = normalizeSearch(p.email);
+      if (
+        !hotelName.includes(q) &&
+        !gmName.includes(q) &&
+        !gmTitle.includes(q) &&
+        !city.includes(q) &&
+        !email.includes(q)
+      ) {
+        return false;
+      }
     }
     return true;
   });

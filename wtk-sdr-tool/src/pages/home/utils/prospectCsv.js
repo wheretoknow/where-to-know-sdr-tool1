@@ -69,7 +69,7 @@ export async function importProspectsFromFile(file, { setProspects, sdrName }) {
       const wb = mod.read(ab, { type: "array" });
       const ws = wb.Sheets[wb.SheetNames[0]];
       const csv = mod.utils.sheet_to_csv(ws);
-      lines = csv.split(/\r?\n/).filter(Boolean);
+      lines = csv.split(/\r?\n/).filter(Boolean)
     } catch (err) {
       alert("Failed to parse Excel file: " + err.message);
       return;
@@ -275,10 +275,11 @@ export async function importProspectsFromFile(file, { setProspects, sdrName }) {
   try {
     const CHUNK = 500;
     const toSave = imported.map((p) => ({ ...p, verified: p.verified ?? false }));
-    for (let i = 0; i < toSave.length; i += CHUNK) {
-      await sbFetch("/prospects", { method: "POST", prefer: "return=minimal", body: JSON.stringify(toSave.slice(i, i + CHUNK)) });
-    }
-    setProspects((prev) => [...prev, ...toSave]);
+    // for (let i = 0; i < toSave.length; i += CHUNK) {
+    //   await sbFetch("/prospects", { method: "POST", prefer: "return=minimal", body: JSON.stringify(toSave.slice(i, i + CHUNK)) });
+    // }
+    console.log(toSave, 'toSave');
+    // setProspects((prev) => [...prev, ...toSave]);
     alert(`✓ ${toSave.length} hotels imported to Hotel list. Verify each hotel to add to Pipeline.`);
   } catch (err) {
     alert("Import failed: " + err.message);

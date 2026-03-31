@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { LeadScoreBadge } from "./LeadScoreBadge.jsx";
 import { calcLeadScore } from "../../../utils/leadScore.js";
 import {
@@ -82,6 +83,13 @@ export function HotelsTab({
   setDeleteConfirm,
   tracking,
 }) {
+  const [batchLeadStatus, setBatchLeadStatus] = useState("");
+  const [batchStage, setBatchStage] = useState("");
+  const [batchSdr, setBatchSdr] = useState("");
+  const [batchCity, setBatchCity] = useState("");
+  const [batchCountry, setBatchCountry] = useState("");
+  const [batchBrand, setBatchBrand] = useState("");
+
   const hasFilters =
     filterCountry ||
     filterCity ||
@@ -129,7 +137,7 @@ export function HotelsTab({
         />
         <select
           className="cmd-input"
-          style={{ minWidth: 110, flexShrink: 0 }}
+          style={{ width: 110, flexShrink: 0 }}
           value={filterCountry}
           onChange={(e) => {
             setFilterCountry(e.target.value);
@@ -147,7 +155,7 @@ export function HotelsTab({
         </select>
         <select
           className="cmd-input"
-          style={{ minWidth: 110, flexShrink: 0 }}
+          style={{ width: 96, flexShrink: 0 }}
           value={filterCity}
           onChange={(e) => {
             setFilterCity(e.target.value);
@@ -164,7 +172,7 @@ export function HotelsTab({
         </select>
         <select
           className="cmd-input"
-          style={{ width: 160, flexShrink: 0, maxWidth: 160 }}
+          style={{ width: 110, flexShrink: 0, maxWidth: 160 }}
           value={filterGroup}
           onChange={(e) => {
             setFilterGroup(e.target.value);
@@ -181,7 +189,7 @@ export function HotelsTab({
         </select>
         <select
           className="cmd-input"
-          style={{ minWidth: 100, flexShrink: 0 }}
+          style={{ width: 120, flexShrink: 0 }}
           value={filterBrand}
           onChange={(e) => {
             setFilterBrand(e.target.value);
@@ -335,17 +343,8 @@ export function HotelsTab({
               <select
                 className="cmd-input"
                 style={{ minWidth: 100 }}
-                defaultValue=""
-                onChange={async (e) => {
-                  const val = e.target.value;
-                  if (!val) return;
-                  e.target.value = "";
-                  const ids = [...selectedIds];
-                  for (const pid of ids) {
-                    await updateProspect(pid, { lead_status: val });
-                  }
-                  setSelectedIds(new Set());
-                }}
+                value={batchLeadStatus}
+                onChange={(e) => setBatchLeadStatus(e.target.value)}
               >
                 <option value="">Set Lead Status</option>
                 <option value="Active">Active</option>
@@ -355,18 +354,8 @@ export function HotelsTab({
               <select
                 className="cmd-input"
                 style={{ minWidth: 100 }}
-                defaultValue=""
-                onChange={async (e) => {
-                  const val = e.target.value;
-                  if (!val) return;
-                  e.target.value = "";
-                  const ids = [...selectedIds];
-                  for (const pid of ids) {
-                    const t = tracking.find((x) => x.prospect_id === pid);
-                    if (t) await updatePipeline(t.id, { pipeline_stage: val });
-                  }
-                  setSelectedIds(new Set());
-                }}
+                value={batchStage}
+                onChange={(e) => setBatchStage(e.target.value)}
               >
                 <option value="">Set Stage</option>
                 {["new", "1st", "2nd", "3rd", "4th", "replied", "bounced", "demo", "trial", "won", "lost"].map(
@@ -388,18 +377,8 @@ export function HotelsTab({
               <select
                 className="cmd-input"
                 style={{ minWidth: 100 }}
-                defaultValue=""
-                onChange={async (e) => {
-                  const val = e.target.value;
-                  if (!val) return;
-                  e.target.value = "";
-                  const ids = [...selectedIds];
-                  for (const pid of ids) {
-                    const t = tracking.find((x) => x.prospect_id === pid);
-                    if (t) await updatePipeline(t.id, { sdr: val });
-                  }
-                  setSelectedIds(new Set());
-                }}
+                value={batchSdr}
+                onChange={(e) => setBatchSdr(e.target.value)}
               >
                 <option value="">Assign SDR</option>
                 {[...new Set(tracking.map((t) => t.sdr).filter(Boolean))]
@@ -409,6 +388,45 @@ export function HotelsTab({
                       {s}
                     </option>
                   ))}
+              </select>
+              <select
+                className="cmd-input"
+                style={{ width: 110 }}
+                value={batchCountry}
+                onChange={(e) => setBatchCountry(e.target.value)}
+              >
+                <option value="">Set Country</option>
+                {allCountries.map((c) => (
+                  <option key={c} value={c}>
+                    {c}
+                  </option>
+                ))}
+              </select>
+              <select
+                className="cmd-input"
+                style={{ width: 96 }}
+                value={batchCity}
+                onChange={(e) => setBatchCity(e.target.value)}
+              >
+                <option value="">Set City</option>
+                {allCities.map((c) => (
+                  <option key={c} value={c}>
+                    {c}
+                  </option>
+                ))}
+              </select>
+              <select
+                className="cmd-input"
+                style={{width: 96 }}
+                value={batchBrand}
+                onChange={(e) => setBatchBrand(e.target.value)}
+              >
+                <option value="">Set Brand</option>
+                {allBrands.map((b) => (
+                  <option key={b} value={b}>
+                    {b}
+                  </option>
+                ))}
               </select>
               <button
                 className="act-btn"
@@ -459,7 +477,52 @@ export function HotelsTab({
               >
                 Delete {selectedIds.size}
               </button>
-              <button className="act-btn" style={{ fontSize: 11, marginLeft: "auto" }} onClick={() => setSelectedIds(new Set())}>
+              <button
+                className="act-btn success"
+                style={{ fontSize: 11, marginLeft: "auto" }}
+                onClick={async () => {
+                  const ids = [...selectedIds];
+                  if (ids.length === 0) return;
+                  const hasProspectUpdates = !!(batchLeadStatus || batchCity || batchCountry || batchBrand);
+                  const hasTrackingUpdates = !!(batchStage || batchSdr);
+                  if (!hasProspectUpdates && !hasTrackingUpdates) return;
+
+                  for (const pid of ids) {
+                    if (hasProspectUpdates) {
+                      const pUpdates = {};
+                      if (batchLeadStatus) pUpdates.lead_status = batchLeadStatus;
+                      if (batchCity) pUpdates.city = batchCity;
+                      if (batchCountry) pUpdates.country = batchCountry;
+                      if (batchBrand) pUpdates.brand = batchBrand;
+                      if (Object.keys(pUpdates).length > 0) {
+                        await updateProspect(pid, pUpdates);
+                      }
+                    }
+                    if (hasTrackingUpdates) {
+                      const t = tracking.find((x) => x.prospect_id === pid);
+                      if (t) {
+                        const tUpdates = {};
+                        if (batchStage) tUpdates.pipeline_stage = batchStage;
+                        if (batchSdr) tUpdates.sdr = batchSdr;
+                        if (Object.keys(tUpdates).length > 0) {
+                          await updatePipeline(t.id, tUpdates);
+                        }
+                      }
+                    }
+                  }
+
+                  setBatchLeadStatus("");
+                  setBatchStage("");
+                  setBatchSdr("");
+                  setBatchCity("");
+                  setBatchCountry("");
+                  setBatchBrand("");
+                  setSelectedIds(new Set());
+                }}
+              >
+                ✓ Apply changes
+              </button>
+              <button className="act-btn" style={{ fontSize: 11 }} onClick={() => setSelectedIds(new Set())}>
                 ✕ Deselect
               </button>
             </div>
