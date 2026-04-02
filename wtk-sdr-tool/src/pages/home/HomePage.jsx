@@ -362,7 +362,7 @@ export default function HomePage() {
         hotel: p.hotel_name,
         gm: p.gm_name || null,
         email: p.email || null,
-        linkedin: p.linkedin || null,
+        // linkedin: p.linkedin || null,
         sdr: sdrName || "Unknown",
         pipeline_stage: "new",
         done: [],
@@ -496,7 +496,6 @@ export default function HomePage() {
   });
   const totalHotelPages = Math.ceil(sortedP.length / HOTELS_PER_PAGE);
   const pagedP = sortedP.slice((hotelsPage-1)*HOTELS_PER_PAGE, hotelsPage*HOTELS_PER_PAGE);
-
   function normalizeCountryName(v) {
     const s = (v ?? "").toString().trim();
     if (!s) return s;

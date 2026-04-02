@@ -275,11 +275,11 @@ export async function importProspectsFromFile(file, { setProspects, sdrName }) {
   try {
     const CHUNK = 500;
     const toSave = imported.map((p) => ({ ...p, verified: p.verified ?? false }));
-    // for (let i = 0; i < toSave.length; i += CHUNK) {
-    //   await sbFetch("/prospects", { method: "POST", prefer: "return=minimal", body: JSON.stringify(toSave.slice(i, i + CHUNK)) });
-    // }
+    for (let i = 0; i < toSave.length; i += CHUNK) {
+      await sbFetch("/prospects", { method: "POST", prefer: "return=minimal", body: JSON.stringify(toSave.slice(i, i + CHUNK)) });
+    }
     console.log(toSave, 'toSave');
-    // setProspects((prev) => [...prev, ...toSave]);
+    setProspects((prev) => [...prev, ...toSave]);
     alert(`✓ ${toSave.length} hotels imported to Hotel list. Verify each hotel to add to Pipeline.`);
   } catch (err) {
     alert("Import failed: " + err.message);
