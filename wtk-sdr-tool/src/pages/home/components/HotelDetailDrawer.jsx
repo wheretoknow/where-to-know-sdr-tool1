@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { fmtDate, fmtDateShort } from "../../../utils/dateUtils.js";
 import { getProvider } from "../../../utils/hotelNormalize.js";
 import { calcLeadScore } from "../../../utils/leadScore.js";
@@ -29,9 +30,93 @@ export function HotelDetailDrawer({
   saveNote,
   copied,
   copy,
+  onToast,
 }) {
+  const [outreachBusy, setOutreachBusy] = useState(null);
+
   if (!prospect) return null;
   const sel = prospect;
+
+  async function runOutreachEmail(mode) {
+    if (!onToast) return;
+    const contacts = parseContacts(sel.id);
+    const primary = contacts.find((c) => c.is_primary) || contacts[0];
+    const firstName =
+      (primary?.name || sel.gm_name || "")
+        .trim()
+        .split(/\s+/)
+        .filter(Boolean)[0] ||
+      sel.gm_first_name ||
+      "";
+    const jobTitle = (primary?.title || sel.gm_title || "General Manager").trim();
+    const groupBrand = [sel.brand, sel.hotel_group]
+      .filter(Boolean)
+      .filter((x, i, a) => a.indexOf(x) === i)
+      .join(" · ") || "Independent";
+    const cityMarket = [sel.city, sel.country].filter(Boolean).join(", ");
+    const knownSystem = (sel.current_provider || getProvider(sel) || "").trim() || null;
+    const notesVisible = (sel.research_notes || "").replace(/<!--contacts:.*?-->\n?/s, "").trim();
+
+    if (mode === "follow_up" && !notesVisible) {
+      onToast("Add or generate a first email in Research Notes before follow-up.", "error");
+      return;
+    }
+
+    setOutreachBusy(mode);
+    try {
+      const body = {
+        mode: mode === "follow_up" ? "follow_up" : "first_email",
+        contact_first_name: firstName || null,
+        job_title: jobTitle,
+        hotel_name: sel.hotel_name,
+        city_market: cityMarket || null,
+        hotel_group_brand: groupBrand,
+        known_system: knownSystem,
+        referral_context: null,
+      };
+      if (mode === "follow_up") body.previous_outreach_in_notes = notesVisible;
+
+      const r = await fetch("/api/outreach-email", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
+      const data = await r.json();
+      if (data.rateLimited) {
+        onToast("Rate limit — try again shortly.", "error");
+        return;
+      }
+      if (data.overloaded) {
+        onToast("API busy — try again in a moment.", "error");
+        return;
+      }
+      if (data.error || !r.ok) {
+        onToast(data.error || "Email generation failed", "error");
+        return;
+      }
+
+      const match = (sel.research_notes || "").match(/<!--contacts:.*?-->/s);
+      const contactsBlock = match ? match[0] + "\n" : "";
+
+      let merged;
+      if (mode === "first_email") {
+        const block = `Subject: ${data.subject}\n\n${data.body}`;
+        merged = notesVisible ? `${block}\n\n---\n\n${notesVisible}` : block;
+      } else {
+        merged = notesVisible ? `${notesVisible}\n\n---\n\n${data.body}` : data.body;
+      }
+      await updateProspectField(sel.id, "research_notes", contactsBlock + merged);
+      onToast(
+        mode === "first_email" ? "Cold email inserted at top of Research Notes" : "Follow-up appended to Research Notes",
+        "success"
+      );
+    } catch (e) {
+      console.error(e);
+      onToast(e.message || "Request failed", "error");
+    } finally {
+      setOutreachBusy(null);
+    }
+  }
   return (
     <>
           <div className="overlay" onClick={()=>{ if (!rejectModalOpen) onClose(); }}/>
@@ -274,8 +359,28 @@ export function HotelDetailDrawer({
               </div>
             )}
             <div className="d-sec">
-  <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10}}>
+  <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10,flexWrap:"wrap",gap:8}}>
     <span className="d-sec-title" style={{margin:0}}>Research Notes</span>
+    <div style={{display:"flex",gap:6,flexWrap:"wrap",alignItems:"center"}}>
+      <button
+        type="button"
+        className="act-btn"
+        style={{ fontSize: 11, padding: "4px 10px" }}
+        disabled={!!outreachBusy}
+        onClick={() => runOutreachEmail("first_email")}
+      >
+        {outreachBusy === "first_email" ? "…" : "✉ Generate cold email"}
+      </button>
+      <button
+        type="button"
+        className="act-btn"
+        style={{ fontSize: 11, padding: "4px 10px" }}
+        disabled={!!outreachBusy}
+        onClick={() => runOutreachEmail("follow_up")}
+      >
+        {outreachBusy === "follow_up" ? "…" : "↪ Generate follow-up"}
+      </button>
+    </div>
   </div>
   <textarea
     style={{width:"100%",minHeight:80,fontSize:12,lineHeight:1.7,padding:8,border:"1px solid var(--border2)",borderRadius:5,fontFamily:"'Inter',sans-serif",resize:"vertical",color:"var(--text2)",background:"#f9fafb"}}

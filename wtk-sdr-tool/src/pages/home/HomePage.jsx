@@ -805,6 +805,7 @@ export default function HomePage() {
         saveNote={saveNote}
         copied={copied}
         copy={copy}
+        onToast={showToast}
       />
 
       <Toast toast={toast} />
