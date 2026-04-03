@@ -514,7 +514,7 @@ export default function HomePage() {
   function matchFacetFilters(p, { skipCountry = false, skipCity = false, skipGroup = false, skipBrand = false } = {}) {
     if (!skipCountry && !matchTextFilter(normalizeCountryName(p.country), filterCountry)) return false;
     if (!skipCity && !matchTextFilter(p.city, filterCity)) return false;
-    if (!skipGroup && !matchTextFilter(normalizeGroup(p.hotel_group || p.brand || ""), filterGroup)) return false;
+    if (!skipGroup && !matchTextFilter(normalizeGroup(p.hotel_group || ""), filterGroup)) return false;
     if (!skipBrand && !matchTextFilter(normalizeBrand(p.brand), filterBrand)) return false;
     return true;
   }
@@ -539,7 +539,7 @@ export default function HomePage() {
     ...new Set(
       prospects
         .filter((p) => matchFacetFilters(p, { skipGroup: true }))
-        .map((p) => normalizeGroup(p.hotel_group || p.brand))
+        .map((p) => normalizeGroup(p.hotel_group))
         .filter(Boolean)
     ),
   ].sort();

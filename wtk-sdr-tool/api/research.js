@@ -497,15 +497,24 @@ For each hotel: search the web to verify rooms, address, website, and current GM
 
 SEARCH STRATEGY per hotel:
 1. Search official hotel site → rooms count, address, website URL
-2. Search "[Hotel Name] General Manager appointed ${PREV} OR ${YEAR}" → check hospitalitynet.org, hotelnewsresource.com, LinkedIn
-3. If GM not found in step 2, try broader: "[Hotel Name] General Manager"
+2. LinkedIn verification (MOST IMPORTANT for "current GM"):
+   - Run web searches targeting LinkedIn (e.g. "site:linkedin.com/in \"${YEAR}\" \"General Manager\" \"${hotel_name}\""
+     and/or "\"${hotel_name}\" \"General Manager\" site:linkedin.com" and/or "${hotel_name} GM LinkedIn").
+   - Only accept a GM as valid if the source clearly shows BOTH:
+     a) the person is the General Manager (or exact GM equivalent) for this specific hotel/property, and
+     b) the employment status is CURRENT (e.g. "Present", "Current", or no end date), and
+     c) the hotel/property name matches the current hotel (not a different brand in the same city).
+   - If LinkedIn evidence is old or ambiguous (e.g. "former", "ended", no clear "Present"/current), set gm_name=null and gm_source=null (do not guess).
+3. Search "[Hotel Name] General Manager appointed ${PREV} OR ${YEAR}" → check hospitalitynet.org, hotelnewsresource.com, other credible sources (LinkedIn can appear here too)
+4. If GM not found in steps 2-3, try broader: "[Hotel Name] General Manager"
 
-Return per hotel: hotel_name (use Booking.com name if different), brand, hotel_group, tier, city (from actual address), country, address, website, rooms, rooms_source (URL), gm_name, gm_first_name, gm_title, gm_source (URL), gm_source_year, contact_confidence (H/M/L), research_notes
+Return per hotel: hotel_name (use Booking.com name if different), brand, hotel_group, tier, city (from actual address), country, address, website, rooms, rooms_source (URL), gm_name, gm_first_name, gm_title, gm_source (URL), gm_source_year, linkedin_url (GM LinkedIn profile URL or null), contact_confidence (H/M/L), research_notes
 
 STRICT RULES:
 - rooms: ONLY from official site or Booking.com. rooms_source must be the exact URL where the room count is visibly displayed on the page. If the page does not explicitly show a room count, set rooms=null and rooms_source=null. Do not use press releases or blog posts as rooms_source.
-- gm_name: ONLY if confirmed from a real source that explicitly states the GM name + title + this hotel name. LinkedIn profile pages are acceptable if they show this hotel. If not explicit, set gm_name=null.
+- gm_name: ONLY if confirmed from a real source that explicitly states the GM name + title + this hotel name. LinkedIn profile pages are acceptable ONLY if they clearly show current employment (e.g. "Present"/"Current") for this specific hotel/property. If not explicit (or not clearly current), set gm_name=null.
 - gm_source: Must be a real URL where the GM name and hotel appear together. If you cannot verify, set gm_name=null and gm_source=null.
+- linkedin_url: If the validated GM comes from a LinkedIn profile, set this to that LinkedIn profile URL. Otherwise set linkedin_url=null. Do NOT guess or construct email-style URLs.
 - email: Always null. Do not guess emails.
 
 WEBSITE RULES (strict):
@@ -777,6 +786,7 @@ Return JSON array with all required fields. Use null for anything unverified. St
           outreach_email_subject: null,
           outreach_email_body: null,
           followup_email_body: null,
+          linkedin: p.linkedin_url || null,
         };
       });
 

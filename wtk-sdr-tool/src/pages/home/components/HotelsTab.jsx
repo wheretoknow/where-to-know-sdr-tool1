@@ -640,9 +640,9 @@ export function HotelsTab({
                             textOverflow: "ellipsis",
                             whiteSpace: "nowrap",
                           }}
-                          title={normalizeGroup(p.hotel_group || p.brand) || "Independent"}
+                          title={normalizeGroup(p.hotel_group) || "Independent"}
                         >
-                          {isIndependent ? "Independent" : normalizeGroup(p.hotel_group || p.brand) || "—"}
+                          {isIndependent ? "Independent" : normalizeGroup(p.hotel_group) || "—"}
                         </div>
                       </td>
                       <td>

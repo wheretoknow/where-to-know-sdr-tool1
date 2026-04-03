@@ -35,6 +35,7 @@ export function ContactTrackerTab({
     try {
       if (navigator?.clipboard?.writeText) {
         await navigator.clipboard.writeText(text);
+        alert("Copied to clipboard");
         return true;
       }
     } catch (e) {
@@ -50,6 +51,10 @@ export function ContactTrackerTab({
       ta.select();
       const ok = document.execCommand("copy");
       document.body.removeChild(ta);
+
+      if (ok) {
+        alert("Copied to clipboard");
+      }
       return ok;
     } catch (e) {
       return false;
@@ -264,7 +269,7 @@ export function ContactTrackerTab({
                 </div>
               </div>
               <div style={{display:"flex",gap:6,flexShrink:0}}>
-                {emailAddr && <button className="act-btn" style={{fontSize:10,padding:"4px 10px",background:"var(--accent)",color:"white",border:"none",borderRadius:4,cursor:"pointer"}} onClick={async e=>{e.stopPropagation();const subj=encodeURIComponent("Guest feedback insights for "+t.hotel);const body=encodeURIComponent(`Hi ${gmFirst},\n\nI recently reviewed guest feedback trends for ${t.hotel}...\n\nBest,\nZishuo Wang | Where to know`);const webUrl=`https://outlook.office.com/mail/deeplink/compose?to=${encodeURIComponent(emailAddr)}&subject=${subj}&body=${body}`;const ok=await copyToClipboard(webUrl);if(!ok) window.prompt("Copy this link:", webUrl);}}>⧉ Copy Link</button>}
+                {emailAddr && <button className="act-btn" style={{fontSize:10,padding:"4px 10px",background:"var(--accent)",color:"white",border:"none",borderRadius:4,cursor:"pointer"}} onClick={async e=>{e.stopPropagation();const ok=await copyToClipboard(emailAddr);if(!ok) window.prompt("Copy this email:", emailAddr);}}>✉ Email</button>}
                 <button className="act-btn" style={{fontSize:10,padding:"4px 10px"}} onClick={()=>{setCtFocusMode(false);setCtExpanded(t.id);}}>Details</button>
               </div>
             </div>
@@ -345,7 +350,7 @@ export function ContactTrackerTab({
             <td>
               <div style={{display:"flex",alignItems:"center",gap:6}}>
                 <span style={{fontSize:11,color:status==="done"?"var(--text3)":"var(--text)"}}>{nextAction||EM}</span>
-                {emailAddr ? <button className="act-btn" style={{fontSize:9,padding:"2px 6px",background:"var(--accent)",color:"white",border:"none",borderRadius:4,cursor:"pointer",whiteSpace:"nowrap",flexShrink:0}} onClick={async e=>{e.stopPropagation();const subj=encodeURIComponent("Guest feedback insights for "+t.hotel);const body=encodeURIComponent(`Hi ${gmFirst},\n\nI recently reviewed guest feedback trends for ${t.hotel}...\n\nBest,\nZishuo Wang | Where to know`);const webUrl=`https://outlook.office.com/mail/deeplink/compose?to=${encodeURIComponent(emailAddr)}&subject=${subj}&body=${body}`;const ok=await copyToClipboard(webUrl);if(!ok) window.prompt("Copy this link:", webUrl);}}>⧉ Copy Link</button>
+                {emailAddr ? <button className="act-btn" style={{fontSize:9,padding:"2px 6px",background:"var(--accent)",color:"white",border:"none",borderRadius:4,cursor:"pointer",whiteSpace:"nowrap",flexShrink:0}} onClick={async e=>{e.stopPropagation();const subj=encodeURIComponent("Guest feedback insights for "+t.hotel);const body=encodeURIComponent(`Hi ${gmFirst},\n\nI recently reviewed guest feedback trends for ${t.hotel}...\n\nBest,\nZishuo Wang | Where to know`);const webUrl=`https://outlook.office.com/mail/deeplink/compose?to=${encodeURIComponent(emailAddr)}&subject=${subj}&body=${body}`;const ok=await copyToClipboard(emailAddr);if(!ok) window.prompt("Copy this email:", emailAddr);}}>✉ Email</button>
                 : <button className="act-btn" style={{fontSize:9,padding:"2px 6px",background:"transparent",color:"var(--text3)",border:"1px solid var(--border)",borderRadius:4,cursor:"pointer",whiteSpace:"nowrap",flexShrink:0}} onClick={e=>{e.stopPropagation();setSelected(t.prospect_id);}}>+ Add email</button>}
               </div>
             </td>
