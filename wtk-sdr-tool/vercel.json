@@ -6,7 +6,7 @@
     "api/research.js": {
       "maxDuration": 60
     },
-    "api/outreach-emailByUrl.js": {
+    "api/outreach-email.js": {
       "maxDuration": 60
     }
   }
