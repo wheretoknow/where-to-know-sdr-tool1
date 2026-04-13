@@ -7,6 +7,7 @@ export function exportProspectsCsv(filteredP) {
   const h = [
     "Hotel",
     "Brand",
+    "Group",
     "Tier",
     "City",
     "Country",
@@ -29,6 +30,7 @@ export function exportProspectsCsv(filteredP) {
   const rows = filteredP.map((p) => [
     p.hotel_name,
     p.brand,
+    p.hotel_group,
     p.tier,
     p.city,
     p.country,
